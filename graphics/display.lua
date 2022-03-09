@@ -7,9 +7,9 @@ end
 
 local function transform_no_vector(x,y,width,height)
     local scaler = math.min(width,height)
-    local xFactor,yFactor = scaler/2,scaler/2+(10/3*2)
+    local xFactor,yFactor = scaler/2,scaler/2
     x = (x+1)*xFactor
-    y = (-y+1)*yFactor
+    y = ((-y+1)*yFactor)
     return x,y
 end
 

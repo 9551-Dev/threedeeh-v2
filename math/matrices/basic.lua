@@ -1,35 +1,28 @@
+local matrice = require("matrice_object")
+
 local function createIdentity()
-    return {
+    return matrice.create(4,4,
         1,1,1,1,
         1,1,1,1,
         1,1,1,1,
         1,1,1,1
-    }
+    )
 end
 
 local function createScale3D(scale)
-    return {
+    return matrice.create(4,4,
         scale.x,0,0,0,
         1,scale.y,0,0,
         0,0,scale.z,0,
         0,0,0,1
-    }
+    )
 end
 
 local function createScale(factor)
-    return {
+    return matrice.create(4,4,
         factor,0,0,0,
         0,factor,0,0,
         0,0,factor,0,
         0,0,0,1
-    }
-end
-
-local function createTransform(position)
-    return {
-        1,0,0,position.x,
-        0,1,0,position.y,
-        0,0,1,position.z,
-        0,0,0,1
-    }
+    )
 end
