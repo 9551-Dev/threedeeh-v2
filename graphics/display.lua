@@ -1,19 +1,12 @@
-local function transform(v,width,height)
-    local xFactor,yFactor = width/2,height/2
-    v.x = (v.x+1)*xFactor
-    v.y = (-v.y+1)*yFactor
-    return v
-end
-
-local function transform_no_vector(x,y,width,height)
+local function transform_no_vector(x,y,z,width,height)
     local scaler = math.min(width,height)
     local xFactor,yFactor = scaler/2,scaler/2
-    x = (x+1)*xFactor
-    y = ((-y+1)*yFactor)
+    local z_inv = 1/z
+    x = (x*z_inv+1)*xFactor
+    y = (-y*z_inv+1)*yFactor
     return x,y
 end
 
 return {    
-    transform = transform,
     transform_no_vector=transform_no_vector
 }

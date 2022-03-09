@@ -67,6 +67,10 @@ local function matmul(m1, m2, width)
     return result
 end
 
+local function wrap_angle(theta)
+    local modded = theta%(2*math.pi)
+    return (modded > math.pi) and (modded-2*math.pi) or modded
+end
 
 return {
     matmul4=matmul4,
