@@ -1,4 +1,4 @@
-local function createCube(scale)
+return function(scale)
     local side = scale/2
     return {
         shape = {
@@ -41,7 +41,3 @@ local function createCube(scale)
         },
     }
 end
-
-return {
-    create_cube = createCube
-}

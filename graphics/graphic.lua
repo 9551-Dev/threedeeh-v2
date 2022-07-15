@@ -1,36 +1,50 @@
+local CEIL = math.ceil
+
 local function draw_flat_top_triangle(v0,v1,v2,points,caller)
-    local m0 = (v2.x - v0.x) / (v2.y - v0.y)
-    local m1 = (v2.x - v1.x) / (v2.y - v1.y)
-    local y_start = math.ceil(v0.y - 0.5)
-    local y_end   = math.ceil(v2.y - 0.5) - 1
+    local v0x,v0y,v0z = v0.x,v0.y,v0.z
+    local v1x,v1y,v1z = v1.x,v1.y,v1.z
+    local v2x,v2y,v2z = v2.x,v2.y,v2.z
+    local LIST,LUT = points.list,points.LUT
+    local m0 = (v2x - v0x) / (v2y - v0y)
+    local m1 = (v2x - v1x) / (v2y - v1y)
+    local y_start = CEIL(v0y - 0.5)
+    local y_end   = CEIL(v2y - 0.5) - 1
+    local n = #LIST
     for y=y_start,y_end do 
-        local px0 = m0 * (y + 0.5 - v0.y) + v0.x
-        local px1 = m1 * (y + 0.5 - v1.y) + v1.x
-        local x_start = math.ceil(px0 - 0.5)
-        local x_end   = math.ceil(px1 - 0.5)
+        local px0 = m0 * (y + 0.5 - v0y) + v0x
+        local px1 = m1 * (y + 0.5 - v1y) + v1x
+        local x_start = CEIL(px0 - 0.5)
+        local x_end   = CEIL(px1 - 0.5)
         for x=x_start,x_end do
-            points.list[#points.list+1] =  {x=x,y=y}
-            if not points.LUT[y] then points.LUT[y] = {} end
-            points.LUT[y][x] = true
+            n = n + 1
+            LIST[n] =  {x=x,y=y}
+            if not LUT[y] then LUT[y] = {} end
+            LUT[y][x] = true
             if caller then caller(x,y) end
         end
     end
 end
 
 local function draw_flat_bottom_triangle(v0,v1,v2,points,caller)
-    local m0 = (v1.x - v0.x) / (v1.y - v0.y)
-    local m1 = (v2.x - v0.x) / (v2.y - v0.y)
-    local y_start = math.ceil(v0.y - 0.5)
-    local y_end   = math.ceil(v2.y - 0.5) - 1
+    local v0x,v0y,v0z = v0.x,v0.y,v0.z
+    local v1x,v1y,v1z = v1.x,v1.y,v1.z
+    local v2x,v2y,v2z = v2.x,v2.y,v2.z
+    local LIST,LUT = points.list,points.LUT
+    local m0 = (v1x - v0x) / (v1y - v0y)
+    local m1 = (v2x - v0x) / (v2y - v0y)
+    local y_start = CEIL(v0y - 0.5)
+    local y_end   = CEIL(v2y - 0.5) - 1
+    local n = #LIST
     for y=y_start,y_end do 
-        local px0 = m0 * (y + 0.5 - v0.y) + v0.x
-        local px1 = m1 * (y + 0.5 - v0.y) + v0.x
-        local x_start = math.ceil(px0 - 0.5)
-        local x_end   = math.ceil(px1 - 0.5)
+        local px0 = m0 * (y + 0.5 - v0y) + v0x
+        local px1 = m1 * (y + 0.5 - v0y) + v0x
+        local x_start = CEIL(px0 - 0.5)
+        local x_end   = CEIL(px1 - 0.5)
         for x=x_start,x_end do
-            points.list[#points.list+1] =  {x=x,y=y}
-            if not points.LUT[y] then points.LUT[y] = {} end
-            points.LUT[y][x] = true
+            n = n + 1
+            LIST[n] =  {x=x,y=y}
+            if not LUT[y] then LUT[y] = {} end
+            LUT[y][x] = true
             if caller then caller(x,y) end
         end
     end

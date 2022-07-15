@@ -1,5 +1,4 @@
 local function matrix_multiply(a, b)
-    if a.matrix_width ~= b.matrix_height then error("invalid matrix sizes", 2) end
     local m = {}
     m.matrix_height = a.matrix_height
     m.matrix_width = b.matrix_width
