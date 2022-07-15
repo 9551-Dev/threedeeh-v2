@@ -13,7 +13,7 @@ local function transform_vector(arr,width,height)
     local z_inv = 1/arr.z
     local x = (arr.x*z_inv+1)*xFactor
     local y = (-arr.y*z_inv+1)*yFactor
-    return {x,y}
+    return {x=x,y=y}
 end
 
 return {    

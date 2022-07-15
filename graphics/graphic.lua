@@ -1,62 +1,69 @@
-local function drawFlatTopTriangle( termObj,vec1,vec2,vec3,color )
-    local m1 = (vec3.x - vec1.x) / (vec3.y - vec1.y)
-    local m2 = (vec3.x - vec2.x) / (vec3.y - vec2.y)
-    local yStart = math.ceil(vec1.y - 0.5)
-    local yEnd =   math.ceil(vec3.y - 0.5)-1
-    for y = yStart, yEnd do
-        local px1 = m1 * (y + 0.5 - vec1.y) + vec1.x
-        local px2 = m2 * (y + 0.5 - vec2.y) + vec2.x
-        local xStart = math.ceil(px1 - 0.5)
-        local xEnd =   math.ceil(px2 - 0.5)
-        termObj.setCursorPos(xStart,y)
-        termObj.setBackgroundColor(color)
-        termObj.write((" "):rep(xEnd-xStart))
-    end
-end
-
-local function drawFlatBottomTriangle( termObj,vec1,vec2,vec3,color )
-    local m1 = (vec2.x - vec1.x) / (vec2.y - vec1.y)
-    local m2 = (vec3.x - vec1.x) / (vec3.y - vec1.y)
-    local yStart = math.ceil(vec1.y-0.5)
-    local yEnd =   math.ceil(vec3.y-0.5)-1
-    for y = yStart, yEnd do
-        local px1 = m1 * (y + 0.5 - vec1.y) + vec1.x
-        local px2 = m2 * (y + 0.5 - vec1.y) + vec1.x
-        local xStart = math.ceil(px1 - 0.5)
-        local xEnd =   math.ceil(px2 - 0.5)
-        termObj.setBackgroundColor(color)
-        termObj.setCursorPos(xStart,y)
-        termObj.write((" "):rep(xEnd-xStart))
-    end
-end
-local function create( termObj,v1,v2,v3,color)
-    local pv1 = vector.new(unpack(v1))
-    local pv2 = vector.new(unpack(v2))
-    local pv3 = vector.new(unpack(v3))
-    if pv2.y < pv1.y then pv1,pv2 = pv2,pv1 end
-    if pv3.y < pv2.y then pv2,pv3 = pv3,pv2 end
-    if pv2.y < pv1.y then pv1,pv2 = pv2,pv1 end
-    if pv1.y == pv2.y then
-        if pv2.x < pv1.x then pv1,pv2 = pv2,pv1 end
-        drawFlatTopTriangle(termObj,pv1,pv2,pv3,color )
-    elseif pv2.y == pv3.y then
-        if pv3.x < pv2.x then pv3,pv2 = pv2,pv3 end
-        drawFlatBottomTriangle(termObj,pv1,pv2,pv3,color )
-    else 
-        local alphaSplit = (pv2.y-pv1.y)/(pv3.y-pv1.y)
-        local vi ={ 
-            x = pv1.x + ((pv3.x - pv1.x) * alphaSplit),      
-            y = pv1.y + ((pv3.y - pv1.y) * alphaSplit), }
-        if pv2.x < vi.x then
-            drawFlatBottomTriangle(termObj,pv1,pv2,vi,color)
-            drawFlatTopTriangle(termObj,pv2,vi,pv3,color)
-        else
-            drawFlatBottomTriangle(termObj,pv1,vi,pv2,color)
-            drawFlatTopTriangle(termObj,vi,pv2,pv3,color)
+local function draw_flat_top_triangle(v0,v1,v2,points,caller)
+    local m0 = (v2.x - v0.x) / (v2.y - v0.y)
+    local m1 = (v2.x - v1.x) / (v2.y - v1.y)
+    local y_start = math.ceil(v0.y - 0.5)
+    local y_end   = math.ceil(v2.y - 0.5) - 1
+    for y=y_start,y_end do 
+        local px0 = m0 * (y + 0.5 - v0.y) + v0.x
+        local px1 = m1 * (y + 0.5 - v1.y) + v1.x
+        local x_start = math.ceil(px0 - 0.5)
+        local x_end   = math.ceil(px1 - 0.5)
+        for x=x_start,x_end do
+            points.list[#points.list+1] =  {x=x,y=y}
+            if not points.LUT[y] then points.LUT[y] = {} end
+            points.LUT[y][x] = true
+            if caller then caller(x,y) end
         end
     end
 end
 
+local function draw_flat_bottom_triangle(v0,v1,v2,points,caller)
+    local m0 = (v1.x - v0.x) / (v1.y - v0.y)
+    local m1 = (v2.x - v0.x) / (v2.y - v0.y)
+    local y_start = math.ceil(v0.y - 0.5)
+    local y_end   = math.ceil(v2.y - 0.5) - 1
+    for y=y_start,y_end do 
+        local px0 = m0 * (y + 0.5 - v0.y) + v0.x
+        local px1 = m1 * (y + 0.5 - v0.y) + v0.x
+        local x_start = math.ceil(px0 - 0.5)
+        local x_end   = math.ceil(px1 - 0.5)
+        for x=x_start,x_end do
+            points.list[#points.list+1] =  {x=x,y=y}
+            if not points.LUT[y] then points.LUT[y] = {} end
+            points.LUT[y][x] = true
+            if caller then caller(x,y) end
+        end
+    end
+end
+
+local function get_triangle_points(vector0,vector1,vector2,caller)
+    local points = {list={},LUT={}}
+    if vector1.y < vector0.y then vector0,vector1 = vector1,vector0 end
+    if vector2.y < vector1.y then vector1,vector2 = vector2,vector1 end
+    if vector1.y < vector0.y then vector0,vector1 = vector1,vector0 end
+    if vector0.y == vector1.y then
+        if vector1.x < vector0.x then vector0,vector1 = vector1,vector0 end
+        draw_flat_top_triangle(vector0,vector1,vector2,points,caller)
+    elseif vector1.y == vector2.y then
+        if vector2.x < vector1.x then vector1,vector2 = vector2,vector1 end
+        draw_flat_bottom_triangle(vector0,vector1,vector2,points,caller)
+    else
+        local alpha_split = (vector1.y-vector0.y) / (vector2.y-vector0.y)
+        local split_vertex = { 
+            x = vector0.x + ((vector2.x - vector0.x) * alpha_split),      
+            y = vector0.y + ((vector2.y - vector0.y) * alpha_split),
+        }
+        if vector1.x < split_vertex.x then
+            draw_flat_bottom_triangle(vector0,vector1,split_vertex,points,caller)
+            draw_flat_top_triangle   (vector1,split_vertex,vector2,points,caller)
+        else
+            draw_flat_bottom_triangle(vector0,split_vertex,vector1,points,caller)
+            draw_flat_top_triangle   (split_vertex,vector1,vector2,points,caller)
+        end
+    end
+    return points.list
+end
+
 return {
-    create=create
+    create=get_triangle_points
 }

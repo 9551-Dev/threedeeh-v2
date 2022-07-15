@@ -6,19 +6,22 @@ local matrice = require("math.matrices.matrice_object")
 local shapes = require("tools.shapes.cube")
 local color = require("graphics.colors")
 local w,h = term.getSize()
+w,h = w*2,h*3
+
+local pixelbox = require("graphics.pixelbox")
+local box = pixelbox.new(term.current())
 
 local color = color.create()
 
 local count = 0
 
 while true do
-    term.setBackgroundColor(colors.black)
-    for i=1,h do term.setCursorPos(1,i) term.write(("#"):rep(w)) end
+    box:clear(colors.black)
     local cube = shapes.create_cube(1.5)
     local lines = cube.shape.lines
     local triangles = cube.shape.triangles
     local points = cube.shape.points
-    count = count + 5
+    count = count + 2
     for i=1,#cube.shape.points,3 do
         local object_matrix = matrice.create(1,3,
             cube.shape.points[i],
@@ -40,7 +43,9 @@ while true do
             local v1 = display_graphics.transform_vector(p1,w,h)
             local v2 = display_graphics.transform_vector(p2,w,h)
             local v3 = display_graphics.transform_vector(p3,w,h)
-            triangle.create(term,v1,v2,v3,color[i])
+            local points = triangle.create(v1,v2,v3,function(x,y)
+                box:set_pixel(x,y,color[i])
+            end)
         end
     end
     for i=1,#lines-1,2 do   
@@ -49,7 +54,10 @@ while true do
         local ex,ey,ez = points[(v2i-1)*3+1],points[(v2i-1)*3+2],points[(v2i-1)*3+3]
         sx,sy = display_graphics.transform_no_vector(sx,sy,sz,w,h)
         ex,ey = display_graphics.transform_no_vector(ex,ey,ez,w,h)
-        paintutils.drawLine(sx,sy,ex,ey,colors.red)
+        box:set_line(sx,sy,ex,ey,colors.red)
     end
-    sleep(0.1)
+    box:push_updates()
+    box:draw()
+    os.queueEvent("update")
+    os.pullEvent()
 end
