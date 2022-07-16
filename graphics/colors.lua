@@ -11,16 +11,10 @@ local function createColor(whitelist,blacklist)
             if useall then
                 table.insert(clist,v)
             else
-                if skipBlack and whitelist then
-                    if acls[v] then table.insert(clist,v) end
-                else
-                    if acls[v] and not bcls[v] then table.insert(clist,v) end
-                end
-                if skipWhite and blacklist then
-                    if not bcls[v] then table.insert(clist,v) end
-                else
-                    if acls[v] and not bcls[v] then table.insert(clist,v) end
-                end
+                if skipBlack and whitelist and acls then if acls[v] then table.insert(clist,v) end
+                else if acls[v] and not bcls[v] then table.insert(clist,v) end end
+                if skipWhite and blacklist then if not bcls[v] then table.insert(clist,v) end
+                else if acls[v] and not bcls[v] then table.insert(clist,v) end end
             end
         end 
     end

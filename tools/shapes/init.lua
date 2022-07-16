@@ -5,7 +5,7 @@ local function make(self_dir)
         if not (v == "init.lua") then
             local path = fs.combine(fs.combine(self_dir,"tools/shapes/"), v)
             local data = require(path:gsub("%.lua$",""))
-            shapes.new[v:gsub("%.lua$","")] = data
+            shapes.new[v:gsub("%.lua$","")] = data(self_dir)
         end
     end
     return shapes

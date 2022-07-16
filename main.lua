@@ -14,26 +14,41 @@ local color = color.create(nil,{[colors.black]=true})
 
 local UNPACK = table.unpack
 
+local max_samples = 100
+local samples = {}
+local currentSample = 1
+local function get_avg_fps(fstart,fend)
+    local FPS = 1000000000/(fend-fstart)
+    samples[currentSample] = FPS
+    currentSample = currentSample % max_samples + 1
+    local added = 0
+    for k,v in pairs(samples) do
+        added = added + v
+    end
+    return added/#samples
+end
+
 local function main(old,dir)
     local objects   = require("objects")              .make(dir)
     local shape     = require("tools.shapes")         .make(dir)
     local rotationm = require("math.matrice.rotation").make(dir)
 
     package.path = old
-    local frames = {}
+    _G.frames = {}
     return {run=function()
-        local st = os.epoch("utc")
-        local shapes = {shape.new.pyramid(1.5),shape.new.cube(0.5)}
+        local st = os.epoch("nano")
+        local shapes = {shape.new.pyramid(1.5),shape.new.cube(1)}
         for i=1,math.huge do
+            local fts = os.epoch("nano")
             box:clear(colors.black) 
             local transformed_vertices = {}
             for shape_index,object in pairs(shapes) do
                 transformed_vertices[shape_index] = {shape=object.shape}
-                for i=1,#object.shape.points,3 do
+                for i=1,#object.shape.vertices,3 do
                     local object_matrix = objects.new.mat(1,3,
-                        object.shape.points[i],
-                        object.shape.points[i+1],
-                        object.shape.points[i+2]
+                        object.shape.vertices[i],
+                        object.shape.vertices[i+1],
+                        object.shape.vertices[i+2]
                     )
                     local rotation = rotationm.create_rotation_x(math.rad((math.sin(os.epoch("utc")/2000)+1)*180))
                     local rotation = rotation*rotationm.create_rotation_y(math.rad((math.sin(os.epoch("utc")/1000)+1)*180))
@@ -43,13 +58,13 @@ local function main(old,dir)
                     transformed_vertices[shape_index][i+2] = UNPACK(rotation*object_matrix)
 
                     transformed_vertices[shape_index][i+2] = transformed_vertices[shape_index][i+2]+2
-                    if shape_index == 2 then transformed_vertices[shape_index][i] = transformed_vertices[shape_index][i] + 2 end
+                    if shape_index == 2 then transformed_vertices[shape_index][i] = transformed_vertices[shape_index][i] + 3 end
                 end
             end
             local triangles_total = 0
             for shapeindex,vertices in pairs(transformed_vertices) do
-                local triangle_indices = vertices.shape.triangles
-                local line_indices     = vertices.shape.lines
+                local triangle_indices = vertices.shape.triangle_indices
+                local line_indices     = vertices.shape.line_indices
                 triangles_total = triangles_total + #triangle_indices
                 for i=1,#triangle_indices-2,3 do
                     local v1i,v2i,v3i = triangle_indices[i],triangle_indices[i+1],triangle_indices[i+2]
@@ -66,25 +81,27 @@ local function main(old,dir)
                         end)
                     end
                 end
-                for i=1,#line_indices-1,2 do   
-                    local v1i,v2i = line_indices[i],line_indices[i+1]
-                    local sx,sy,sz = vertices[(v1i-1)*3+1],vertices[(v1i-1)*3+2],vertices[(v1i-1)*3+3]    
-                    local ex,ey,ez = vertices[(v2i-1)*3+1],vertices[(v2i-1)*3+2],vertices[(v2i-1)*3+3]
-                    sx,sy = display_graphics.transform_no_vector(sx,sy,sz,w,h)
-                    ex,ey = display_graphics.transform_no_vector(ex,ey,ez,w,h)
-                    --box:set_line(sx,sy,ex,ey,colors.red)
+                if line_indices then
+                    for i=1,#line_indices-1,2 do   
+                        local v1i,v2i = line_indices[i],line_indices[i+1]
+                        local sx,sy,sz = vertices[(v1i-1)*3+1],vertices[(v1i-1)*3+2],vertices[(v1i-1)*3+3]    
+                        local ex,ey,ez = vertices[(v2i-1)*3+1],vertices[(v2i-1)*3+2],vertices[(v2i-1)*3+3]
+                        sx,sy = display_graphics.transform_no_vector(sx,sy,sz,w,h)
+                        ex,ey = display_graphics.transform_no_vector(ex,ey,ez,w,h)
+                        --box:set_line(sx,sy,ex,ey,colors.red)
+                    end
                 end
             end
             box:push_updates()
             box:draw()
-            local ct = os.epoch("utc")
+            local ct = os.epoch("nano")
             os.queueEvent("update")
             os.pullEvent()
-            local passed = ct-st
+            local FPS = get_avg_fps(fts,ct)
             dbug.clear()
             dbug.setCursorPos(1,1)
-            dbug.write(math.floor(i/(passed/1000)) .. " FPS" .. "       triangles:"..(triangles_total/3).."        frame:"..i)
-            table.insert(frames,math.floor(i/(passed/1000)))
+            dbug.write(math.floor(FPS) .. " FPS" .. " triangles:"..(triangles_total/3).." frame:"..i.." frametime:"..("%dms"):format((ct-fts)/1000000))
+            _G.frames[i] = {fps=FPS,frametime=(triangles_total/3)}
         end
     end}
 end
