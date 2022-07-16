@@ -33,6 +33,6 @@ local function vector(...)
 end
 
 return {
-    create=matrix,
+    new=matrix,
     matrix_multiply,
 }

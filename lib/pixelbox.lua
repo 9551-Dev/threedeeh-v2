@@ -1,7 +1,5 @@
 --[[
-    * api for easy interaction with drawing characters
-
-    * single file implementation of GuiH pixelbox api
+    * specialized version of pixelbox to be used for 3D rendering
 ]]
 
 local EXPECT = require("cc.expect").expect
@@ -215,11 +213,13 @@ function graphic.build_drawing_char(arr,mode)
             {count=cols[v].count+1,c=cols[v].c}
             or (function() entries = entries + 1 return {count=1,c=v} end)()
     end
+    local n = 0
     for k,v in pairs(cols) do
         if not visited[v.c] then
             visited[v.c] = true
-            if entries == 1 then table.insert(fin,v) end
-            table.insert(fin,v)
+            if entries == 1 then n=n+1 fin[n] = v end
+            n=n+1
+            fin[n] = v
         end
     end
     table.sort(fin,function(a,b) return a.count > b.count end)

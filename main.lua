@@ -1,14 +1,11 @@
 local display_graphics = require("graphics.display")
-local triangle = require("graphics.graphic")
-local rotationm = require("math.matrices.rotation")
+local triangle = require("graphics.rasterize")
 local mapi = require("math.api")
-local matrice = require("math.matrices.matrice_object")
-local shapes = require("tools.shapes")
 local color = require("graphics.colors")
 local w,h = term.getSize()
 w,h = w*2,h*3
 
-local pixelbox = require("graphics.pixelbox")
+local pixelbox = require("lib.pixelbox")
 local win = window.create(term.current(),1,1,w/2,h/3-1)
 local dbug = window.create(term.current(),1,h/3,w/2,1)
 
@@ -16,19 +13,22 @@ local box = pixelbox.new(win)
 local color = color.create(nil,{[colors.black]=true})
 
 local function main(old,dir)
+    local objects   = require("objects")              .make(dir)
+    local shape     = require("tools.shapes")         .make(dir)
+    local rotationm = require("math.matrice.rotation").make(dir)
+
     package.path = old
     local frames = {}
     return {run=function()
         local st = os.epoch("utc")
         for i=1,math.huge do
-            box:clear(colors.black)
-            local shape = shapes.make(dir)
+            box:clear(colors.black) 
             local cube = shape.new.pyramid(1.5)
             local lines = cube.shape.lines
             local triangles = cube.shape.triangles
             local points = cube.shape.points
             for i=1,#cube.shape.points,3 do
-                local object_matrix = matrice.create(1,3,
+                local object_matrix = objects.new.mat(1,3,
                     cube.shape.points[i],
                     cube.shape.points[i+1],
                     cube.shape.points[i+2]
@@ -69,7 +69,7 @@ local function main(old,dir)
             local passed = ct-st
             dbug.clear()
             dbug.setCursorPos(1,1)
-            dbug.write(math.floor(i/(passed/1000)) .. " FPS" .. "       " .. "triangles: "..#triangles/3)
+            dbug.write(math.floor(i/(passed/1000)) .. " FPS" .. "       triangles:"..(#triangles/3).."        frame:"..i)
             table.insert(frames,math.floor(i/(passed/1000)))
         end
     end}
